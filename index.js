@@ -30,7 +30,6 @@ function addGamesToPage(games) {
 
     // loop over each item in the data
 
-
         // create a new div element, which will become the game card
 
 
@@ -44,12 +43,32 @@ function addGamesToPage(games) {
 
 
         // append the game to the games-container
+        const gamesData = typeof games === 'string' ? JSON.parse(games) : games;
+        const gamesContainer = document.getElementById('games-container');
+    
+        for(let i = 0; i < gamesData.length; i++){
+            const game = gamesData[i];
+            const gameCard = document.createElement('div');
+            gameCard.classList.add('game-card');
+    
+            gameCard.innerHTML = `
+                <img class="game-img" src="${game.img}" alt="${game.name}" />
+                <h2>${game.name}</h2>
+                <p>${game.description}</p>
+                <div class="stats">
+                    <p>Pledged: $${game.pledged}</p>
+                    <p>Goal: $${game.goal}</p>
+                    <p>Backers: ${game.backers}</p>
+                </div>
+            `;
+            gamesContainer.appendChild(gameCard);
+        }
 
 }
 
 // call the function we just defined using the correct variable
 // later, we'll call this function using a different list of games
-
+addGamesToPage(GAMES_DATA);
 
 /*************************************************************************************
  * Challenge 4: Create the summary statistics at the top of the page displaying the
@@ -61,19 +80,22 @@ function addGamesToPage(games) {
 const contributionsCard = document.getElementById("num-contributions");
 
 // use reduce() to count the number of total contributions by summing the backers
-
+const totalContributions = GAMES_JSON.reduce((acc,game) => acc + game.backers, 0);
 
 // set the inner HTML using a template literal and toLocaleString to get a number with commas
-
+contributionsCard.innerHTML = totalContributions.toLocaleString();
 
 // grab the amount raised card, then use reduce() to find the total amount raised
 const raisedCard = document.getElementById("total-raised");
+const totalRaised = GAMES_JSON.reduce((acc, game) => acc + game.pledged, 0);
 
 // set inner HTML using template literal
-
+raisedCard.innerHTML = `$${totalRaised.toLocaleString()}`
 
 // grab number of games card and set its inner HTML
 const gamesCard = document.getElementById("num-games");
+gamesCard.innerHTML = GAMES_JSON.length;
+
 
 
 /*************************************************************************************
@@ -87,10 +109,13 @@ function filterUnfundedOnly() {
     deleteChildElements(gamesContainer);
 
     // use filter() to get a list of games that have not yet met their goal
-
+    const unfundedGames = GAMES_JSON.filter ((games) => {
+        return games.pledged < games.goal
+    });
+    console.log(unfundedGames);
 
     // use the function we previously created to add the unfunded games to the DOM
-
+    addGamesToPage(unfundedGames);
 }
 
 // show only games that are fully funded
@@ -98,10 +123,12 @@ function filterFundedOnly() {
     deleteChildElements(gamesContainer);
 
     // use filter() to get a list of games that have met or exceeded their goal
-
-
+    const fundedGames = GAMES_JSON.filter((games) =>{
+        return games.pledged > games.goal
+    });
+    console.log(fundedGames)
     // use the function we previously created to add unfunded games to the DOM
-
+    addGamesToPage(fundedGames);
 }
 
 // show all games
@@ -109,7 +136,7 @@ function showAllGames() {
     deleteChildElements(gamesContainer);
 
     // add all games from the JSON data to the DOM
-
+    addGamesToPage(GAMES_DATA);
 }
 
 // select each button in the "Our Games" section
@@ -118,7 +145,9 @@ const fundedBtn = document.getElementById("funded-btn");
 const allBtn = document.getElementById("all-btn");
 
 // add event listeners with the correct functions to each button
-
+document.getElementById("unfunded-btn").addEventListener("click", filterUnfundedOnly);
+document.getElementById("funded-btn").addEventListener("click", filterFundedOnly);
+document.getElementById("all-btn").addEventListener("click", showAllGames);
 
 /*************************************************************************************
  * Challenge 6: Add more information at the top of the page about the company.
